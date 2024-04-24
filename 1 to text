@@ -1,0 +1,225 @@
+1.用Python做一个法律客户名单和相关信息
+# 导入collections模块中的defaultdict，用于创建默认值为列表的字典
+from collections import defaultdict
+# 创建customers列表，包含客户信息
+customers=[
+['张宇','男',24,'河北','工人','原告','劳务案'],
+['王丽娜','女',33,'陕西','商人','被告','合同案'],
+['李萍','女',28,'山东','工人','被告','劳务案'],
+['徐晴','女',25,'四川','工人','原告','劳务案'],
+['马潇潇','男',34,'四川','工人','原告','劳务案'],
+['张晓','男',27,'陕西','商人','被告','合同案'],
+]
+# 使用defaultdict初始化字典categories，用于按类别存储客户信息
+categories=defaultdict(list)
+# 初始化各个类别的键
+categories['gender']=defaultdict(list)  # 存储性别信息
+categories['origin']=defaultdict(list)  # 存储籍贯信息
+categories['occupation']=defaultdict(list)  # 存储职业信息
+categories['status']=defaultdict(list)  # 存储案件角色信息
+categories['case']=defaultdict(list)  # 存储案件类型信息
+categories['above_30']=[]  # 存储年龄大于等于30的客户姓名
+categories['below_30']=[]  # 存储年龄小于30的客户姓名
+
+# 遍历customers列表，将客户信息按类别存储到categories字典中
+for customer in customers:
+    # 解包客户信息
+    name, gender, age, origin, occupation, status, case = customer
+    # 根据不同类别存储客户姓名
+    categories['gender'][gender].append(name)  # 按性别存储客户姓名
+    categories['origin'][origin].append(name)  # 按籍贯存储客户姓名
+    categories['occupation'][occupation].append(name)  # 按职业存储客户姓名
+    categories['status'][status].append(name)  # 按案件角色存储客户姓名
+    categories['case'][case].append(name)  # 按案件类型存储客户姓名
+    # 判断客户年龄并存储到相应的列表中
+    if age >= 30:
+        categories['above_30'].append(name)  # 年龄大于等于30岁，存入above_30列表
+    else:
+        categories['below_30'].append(name)  # 年龄小于30岁，存入below_30列表
+# 打印分类结果
+for category, values in categories.items():
+    print(f'{category}:{values}')
+
+
+2.用Python做一个法律分词和词频统计
+# 导入Python的jieba分词库
+# 导入collections模块中的Counter
+import jieba
+from collections import Counter
+# 定义函数tokenize_and_count，用于分词和统计词频
+def tokenize_and_count(text,stop_words=None):
+    #分词，使用jieba库的cut函数，返回一个生成器，将其转换为列表
+    tokens=list(jieba.cut(text))
+    # 删除停用词
+    if stop_words:
+        # 使用列表推导式，仅保留不在停用词列表中的词语
+        tokens=[word for word in tokens if word not in stop_words]
+    # 去除标点符号
+    tokens=[word for word in tokens if word not in stop_words]
+    # 去除标点符号
+    tokens=[word for word in tokens if word not in ['，','。']]
+    # 统计词频，使用Counter统计tokens列表中每个词语的出现次数，并返回一个字典
+    word_freq=Counter(tokens)
+    return word_freq
+# 示例中文文本
+text="民法典是我国建国以来颁布的最完整的有关民商事关系的民法典，所以我国公民应该好好学习这部民法典。"
+# 停用词表，你可以根据实际需要添加更多的停用词
+stop_words=['是','我国','以来','最','的','有关','所以','应该','好好','这部']
+# 分词和词频统计，同时删除停用词和标点符号
+result=tokenize_and_count(text,stop_words=stop_words)
+# 打印词频统计结果
+print(result)
+
+3.用Python读取法律文件并做分词和词频
+# 导入Python的第三方分词库jieba
+# 导入re正则表达式
+import jieba
+import re
+# 打开文件并读取文本内容
+file=open("C:\\Users\\ASUA\\Desktop\\python_work\\荷塘月色.txt","r",encoding='utf-8')
+text=file.read()
+file.close()
+
+#创建空字典用于存储词频统计结果
+word_dict={}
+
+# 使用jieba库进行分词
+sentence_depart=jieba.cut(text.strip())
+
+# 遍历分词结果，统计词频
+for word in sentence_depart:
+    if word not in word_dict:
+        word_dict[word]=1
+    else:
+        word_dict[word]+=1
+# 打印词频统计结果
+print(word_dict)
+
+4.
+
+5.用Python的Word2Vec做法律案件的相似度匹配
+# 导入gensim中的models模块
+# 导入Word2Vec词向量模型
+
+from gensim import moedls
+from gensim.models import Word2Vec
+
+# 准备案件文本数据库
+case_documents=[
+    ["本案涉及盗窃罪，被告被指控盗窃财物。"],
+    ["该案是一起与盗窃有关的刑事案件。"],
+    ["这是一起杀人案件，被告被控杀害受害人。"],
+    ["本案涉及盗窃罪，被告被指控盗窃财物。"]
+    # 其他案件文本
+    ]
+# 训练Word2Vec模型
+model=Word2Vec(case_documents,min_count=1)
+
+# 获取案件文本的词向量表示
+case1_vector=model.wv[case_documents[0][0].split()]
+case2_vector=model.wv[case_documents[1][0].split()]
+case3_vector=model.wv[case_documents[2][0].split()]
+case4_vector=model.wv[case_documents[3][0].split()]
+
+# 计算案件文本之间的相似度
+similarity_score_1_2=model.wv.similarity(case_documents[0][0], case_documents[1][0])
+similarity_score_1_3=model.wv.similarity(case_documents[0][0], case_documents[2][0])
+similarity_score_1_4=model.wv.similarity(case_documents[0][0], case_documents[3][0])
+
+# 打印相似度结果
+print("案件1与案件2的相似度：",similarity_score_1_2)
+print("案件1与案件3的相似度：",similarity_score_1_3)
+print("案件1与案件4的相似度：",similarity_score_1_4)
+
+
+6.用Python中的re模块查找法律文本中匹配的字或词
+# 用Python中的re模块查找法律文本中匹配的字或词
+# 导入Python的正则表达式模块，查找文本中匹配的字或词
+import re
+# 示例文本
+text_string='当事人一方不履行合同义务或者履行合同义务不符合约定，应当承担继续履行、采取补救措施或者赔偿损失等违约责任。当事人一方明确表示或者以自己的行为表明不履行合同义务的，对方可以在履行期限届满前请求其承担违约责任。'
+regex='约定'    # 需要匹配的关键词
+p_string=text_string.split('。')    # 使用句号进行文本拆分
+found=False  # 标志变量，用于记录是否找到匹配项
+# 遍历拆分后的文本行
+for line in p_string:
+    if re.search(regex,line): # 使用正则表达式查找匹配项
+        print(line)
+        found=True
+# 如果没有找到匹配项，输出None
+if not found:
+    print(None)
+
+7.用Python做法律数量与案件数量之间关系的图形
+# 导入matplotlib库
+import matplotlib.pyplot as plt
+# 创建一个法律数量列表和一个案件数量的列表
+laws_num=[50,100,150,200,250]
+cases_num=[500,1500,2500,3500,5000]
+
+plt.bar(laws_num,cases_num,width=20)  # 设置柱状的宽度为20，可以任意调整
+plt.xlabel('Laws Number')  # 设置x轴的标签为"Laws Number"
+plt.ylabel('Case Number')   # 设置y轴的标签为"Cases Number"
+plt.title('Relationship Between Laws Number and Cases Number')  # 设置图表标题
+# 显示图表
+plt.show()
+
+8.用Python绘制一个法律案件中罚金或赔偿金额的正态分布图
+# 导入Numpy和Matpoltlib库
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 生成正态分布的罚金或赔偿金额数据
+np.random.seed(0)  # 设置随机种子，确保每次运行生成的随机数据相同
+mean=3000 # 均值
+std_dev=500 # 标准差
+num_samples =3000 # 样本数量
+compensation_amounts=np.random.normal(mean,std_dev,num_samples)  # 生成正态分布的罚金或赔偿金额数据
+
+# 绘制直方图
+plt.hist(compensation_amounts,bins=30,density=True,alpha=0)  # 使用plt.hist函数绘制直方图，将alpha设置为0以删除蓝色柱形
+
+# 生成正态分布曲线
+xmin,xmax=plt.xlim()  # 获取x轴的范围
+x=np.linspace(xmin,xmax,100)  # 生成x轴上的一系列值
+p=(1/(std_dev*np.sqrt(2*np.pi)))*np.exp(-(x-mean)**2/(2*std_dev**2))  # 计算每个x值对应的正态分布概率密度值
+
+# 绘制正态分布曲线
+plt.plot(x,p,'k',linewidth=2)  # 使用plt.plot函数绘制正态分布曲线，'k'表示曲线为黑色，linewidth=2指定曲线的宽度
+
+# 添加x轴和y轴的标签以及图标的标题
+plt.xlabel('Compensation Amount')  # 添加x轴标签
+plt.ylabel('Frequency')   # 添加y轴标签
+plt.title('Distribution of Compensation Amount in Legal Cases')  # 添加图表标题
+
+# 显示图表
+plt.show()
+
+9.用Python做一个法律文本的词云图
+# 须确定已安装了pillow
+# 导入matplotlib.pyplot模块和WordCloud
+import matplotlib.pyplot as plt
+from wordcloud import WordCloud
+
+# 定义文本内容
+text=(
+    "就在本书完稿，准备印刷之际，去年11月30日，"
+    "美国科技公司OpenAI发布了一款机器人ChatGPT，顿时轰动了全世界。"
+    "两个月的时间，用户超过了一亿，创造了历史。这款聊天机器人几乎达到了人类的智力水平，"
+    "使我们第一次可以触摸到了强人工智能（AGI）的临界点。正如比尔·盖茨所说：“ChatGPT的出现就像"
+    "当年的互联网和iPhone的出现一样”。它也许是我们脑力工作者的一次工业革命，有点像电和蒸汽机的发明一样。"
+    "这项影响人类社会的颠覆性，正在给各行各业带来深刻的变革。"
+    
+)
+# 创建WordCloud对象，设置字体路径、画布宽度、高度和背景颜色，并生成词云
+wordcloud=WordCloud(
+    font_path="C:/Windows/Fonts/simsun.ttc",width=800,height=400,
+    background_color="white"
+).generate(text)
+
+# 显示生成的词云图像
+plt.imshow(wordcloud,interpolation="bilinear")
+plt.axis("off")  # 关闭坐标轴
+
+# 显示词云图
+plt.show()
